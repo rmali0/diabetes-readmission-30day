@@ -1,0 +1,16 @@
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+.Rprofile
+analysis/*.html
+analysis/*_cache/
+analysis/*_files/
+analysis/figures/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
