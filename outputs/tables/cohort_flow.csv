@@ -1,0 +1,6 @@
+step,n_remaining,excluded_reason,n_excluded
+All encounters,101766,,
+Adult encounters (age 20+),100914,Age under 20,852
+First encounter per patient,70840,Repeat encounters,30074
+"Discharged alive, not to hospice",69297,Died or discharged to hospice,1543
+Analytic cohort,69294,Sex unknown or invalid,3

@@ -1,0 +1,5 @@
+variable,characteristic,estimate,p_value
+prior_inpatient,"Inpatient admissions, prior year",-0.1369046600332028,5.907691101340879e-6
+prior_emergency,"Emergency visits, prior year",-0.07650263331208838,0.01484095064378509
+prior_outpatient,"Outpatient visits, prior year",-0.03354652939628696,0.06307011439162626
+length_of_stay,"Length of stay, days",-0.08489695472501402,2.8279798051191354e-10

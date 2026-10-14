@@ -1,0 +1,24 @@
+Package: diabetesreadmission30day
+Title: Thirty-Day Readmission Among Adults Hospitalized with Diabetes
+Version: 1.0.0
+Authors@R: c(
+    person("Richard", "Mali", role = c("aut", "cre")),
+    person("Vivian", "Asare", role = "aut"))
+Description: Analysis project (not an installable package). This file lists
+    the R packages the analysis and tests need so CI can install them.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Imports:
+    broom,
+    car,
+    dplyr,
+    ggplot2,
+    knitr,
+    pROC,
+    readr,
+    rmarkdown,
+    scales,
+    tibble,
+    tidyr
+Suggests:
+    testthat (>= 3.0.0)

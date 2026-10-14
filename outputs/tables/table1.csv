@@ -1,0 +1,39 @@
+variable,characteristic,level,statistic,overall,not_readmitted,readmitted
+age_cat,"Age, years",20-29,n (%)," 1,132 (1.6)"," 1,048 (1.7)",   84 (1.3)
+age_cat,"Age, years",30-39,n (%)," 2,692 (3.9)"," 2,504 (4.0)",  188 (3.0)
+age_cat,"Age, years",40-49,n (%)," 6,828 (9.9)"," 6,322 (10.0)",  506 (8.1)
+age_cat,"Age, years",50-59,n (%),"12,349 (17.8)","11,470 (18.2)",  879 (14.1)
+age_cat,"Age, years",60-69,n (%),"15,683 (22.6)","14,271 (22.6)","1,412 (22.6)"
+age_cat,"Age, years",70-79,n (%),"17,748 (25.6)","15,931 (25.3)","1,817 (29.1)"
+age_cat,"Age, years",80-89,n (%),"11,102 (16.0)"," 9,907 (15.7)","1,195 (19.1)"
+age_cat,"Age, years",90+,n (%)," 1,760 (2.5)"," 1,592 (2.5)",  168 (2.7)
+sex,Sex,Female,n (%),"36,853 (53.2)","33,508 (53.1)","3,345 (53.5)"
+sex,Sex,Male,n (%),"32,441 (46.8)","29,537 (46.9)","2,904 (46.5)"
+race_cat,Race/ethnicity,White,n (%),"51,835 (74.8)","47,053 (74.6)","4,782 (76.5)"
+race_cat,Race/ethnicity,Black,n (%),"12,454 (18.0)","11,369 (18.0)","1,085 (17.4)"
+race_cat,Race/ethnicity,Hispanic,n (%)," 1,477 (2.1)"," 1,355 (2.1)",  122 (2.0)
+race_cat,Race/ethnicity,Other/Unknown,n (%)," 3,528 (5.1)"," 3,268 (5.2)",  260 (4.2)
+a1c_cat,HbA1c result,Not measured,n (%),"56,803 (82.0)","51,624 (81.9)","5,179 (82.9)"
+a1c_cat,HbA1c result,Normal,n (%)," 3,698 (5.3)"," 3,376 (5.4)",  322 (5.2)
+a1c_cat,HbA1c result,>7,n (%)," 2,854 (4.1)"," 2,608 (4.1)",  246 (3.9)
+a1c_cat,HbA1c result,>8,n (%)," 5,939 (8.6)"," 5,437 (8.6)",  502 (8.0)
+insulin_use,Insulin prescribed,No,n (%),"34,148 (49.3)","31,314 (49.7)","2,834 (45.4)"
+insulin_use,Insulin prescribed,Yes,n (%),"35,146 (50.7)","31,731 (50.3)","3,415 (54.6)"
+med_change,Diabetes medication changed,No,n (%),"38,061 (54.9)","34,773 (55.2)","3,288 (52.6)"
+med_change,Diabetes medication changed,Yes,n (%),"31,233 (45.1)","28,272 (44.8)","2,961 (47.4)"
+diag_cat,Primary diagnosis,Cardiovascular,n (%),"21,377 (30.8)","19,311 (30.6)","2,066 (33.1)"
+diag_cat,Primary diagnosis,Diabetes-related,n (%)," 5,239 (7.6)"," 4,731 (7.5)",  508 (8.1)
+diag_cat,Primary diagnosis,Respiratory,n (%)," 9,455 (13.6)"," 8,764 (13.9)",  691 (11.1)
+diag_cat,Primary diagnosis,Other,n (%),"33,223 (47.9)","30,239 (48.0)","2,984 (47.8)"
+heart_failure,Heart failure (ICD-9 428),No,n (%),"58,818 (84.9)","53,718 (85.2)","5,100 (81.6)"
+heart_failure,Heart failure (ICD-9 428),Yes,n (%),"10,476 (15.1)"," 9,327 (14.8)","1,149 (18.4)"
+renal_disease,Renal disease (ICD-9 580-593),No,n (%),"63,649 (91.9)","57,970 (92.0)","5,679 (90.9)"
+renal_disease,Renal disease (ICD-9 580-593),Yes,n (%)," 5,645 (8.1)"," 5,075 (8.0)",  570 (9.1)
+prior_inpatient,"Inpatient admissions, prior year",,median [IQR],"0 [0, 0]","0 [0, 0]","0 [0, 0]"
+prior_inpatient,"Inpatient admissions, prior year",,mean (SD),0.18 (0.60),0.16 (0.55),0.37 (0.97)
+prior_emergency,"Emergency visits, prior year",,median [IQR],"0 [0, 0]","0 [0, 0]","0 [0, 0]"
+prior_emergency,"Emergency visits, prior year",,mean (SD),0.10 (0.51),0.10 (0.50),0.15 (0.58)
+prior_outpatient,"Outpatient visits, prior year",,median [IQR],"0 [0, 0]","0 [0, 0]","0 [0, 0]"
+prior_outpatient,"Outpatient visits, prior year",,mean (SD),0.28 (1.07),0.28 (1.07),0.31 (1.05)
+length_of_stay,"Length of stay, days",,median [IQR],"4 [2, 6]","3 [2, 6]","4 [2, 7]"
+length_of_stay,"Length of stay, days",,mean (SD),4.29 (2.94),4.24 (2.92),4.81 (3.06)

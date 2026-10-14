@@ -1,0 +1,278 @@
+---
+title: "30-day readmission among adults hospitalized with diabetes"
+author: "Richard Mali and Vivian Asare"
+output:
+  github_document:
+    html_preview: false
+    toc: true
+params:
+  boot_reps: 200
+  seed: 2026
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.path = "figures/")
+options(knitr.kable.NA = "")
+
+# Works whether the file is knitted from analysis/ or from the repo root.
+root <- if (file.exists("R/cohort.R")) "." else ".."
+for (f in list.files(file.path(root, "R"), pattern = "\\.R$", full.names = TRUE)) source(f)
+
+fig_dir <- file.path(root, "outputs", "figures")
+tab_dir <- file.path(root, "outputs", "tables")
+dir.create(fig_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(tab_dir, recursive = TRUE, showWarnings = FALSE)
+
+write_table <- function(x, name) {
+  readr::write_csv(x, file.path(tab_dir, paste0(name, ".csv")), na = "")
+  invisible(x)
+}
+show_figure <- function(name) knitr::include_graphics(file.path("..", "outputs", "figures", name))
+pct <- function(x, digits = 1) sprintf(paste0("%.", digits, "f%%"), 100 * x)
+```
+
+This notebook runs the full analysis. Functions live in `R/`; this file
+calls them in order and writes every figure and table to `outputs/`.
+
+## 1. Cohort
+
+The source file has one row per inpatient encounter. The cohort keeps adults,
+takes each patient's first encounter as the index admission, and removes
+index encounters that ended in death or discharge to hospice, since those
+patients cannot be readmitted. Three patients with sex recorded as
+Unknown/Invalid are dropped.
+
+```{r cohort}
+raw <- read_diabetes_data(file.path(root, "data", "diabetic_data.csv.gz"))
+cohort <- build_cohort(raw, exclude_death_hospice = TRUE)
+analytic <- recode_analytic(cohort$data)
+
+write_table(cohort$flow, "cohort_flow")
+knitr::kable(cohort$flow, format.args = list(big.mark = ","))
+```
+
+```{r cohort-flow-figure, echo = FALSE, out.width = "75%"}
+save_figure(plot_cohort_flow(cohort$flow),
+            file.path(fig_dir, "cohort_flow.png"), width = 7.5, height = 6)
+show_figure("cohort_flow.png")
+```
+
+```{r cohort-summary}
+n_total <- nrow(analytic)
+n_events <- sum(analytic$readmit_30day)
+```
+
+The analytic cohort has `r fmt_n(n_total)` patients, of whom
+`r fmt_n(n_events)` (`r pct(n_events / n_total)`) were readmitted within 30 days.
+
+## 2. Table 1: characteristics by readmission status
+
+Column percentages within each group. The prior-visit counts have a median of
+zero in both groups, so means are shown as well.
+
+```{r table1}
+table1 <- make_table1(analytic)
+write_table(table1, "table1")
+
+table1 |>
+  dplyr::mutate(characteristic = ifelse(duplicated(characteristic), "", characteristic)) |>
+  dplyr::select(Characteristic = characteristic, Level = level, Statistic = statistic,
+                Overall = overall, `Not readmitted` = not_readmitted,
+                `Readmitted <30 days` = readmitted) |>
+  knitr::kable()
+```
+
+## 3. Bivariate tests
+
+Chi-square tests for categorical variables (Cramer's V, or phi for 2 x 2
+tables) and Mann-Whitney U tests for the skewed counts (rank-biserial r,
+positive when the readmitted group is higher). All expected cell counts are
+checked against the usual minimum of 5.
+
+```{r bivariate}
+bivariate <- bivariate_tests(analytic)
+write_table(bivariate, "bivariate_tests")
+stopifnot(all(bivariate$min_expected[!is.na(bivariate$min_expected)] >= 5))
+
+bivariate |>
+  dplyr::transmute(Characteristic = characteristic, Test = test,
+                   Statistic = round(statistic, 2), df,
+                   `Effect size` = sprintf("%s = %.3f", effect_size_type, effect_size),
+                   p = format_p(p_value)) |>
+  knitr::kable()
+```
+
+## 4. Multivariable logistic regression
+
+The model keeps the course specification: all 13 predictors entered together,
+with counts and length of stay as linear terms.
+
+```{r model}
+model <- fit_readmission_model(analytic)
+stopifnot(model$converged)
+or_table <- odds_ratio_table(model)
+write_table(or_table, "odds_ratios")
+
+or_table |>
+  dplyr::transmute(Characteristic = characteristic, Level = level,
+                   Reference = reference,
+                   `OR (95% CI)` = sprintf("%.2f (%.2f, %.2f)", or, conf_low, conf_high),
+                   p = format_p(p_value)) |>
+  knitr::kable()
+```
+
+```{r forest-figure, echo = FALSE}
+save_figure(plot_forest(or_table, n_total, n_events),
+            file.path(fig_dir, "forest_plot.png"), width = 8, height = 8.5)
+show_figure("forest_plot.png")
+```
+
+### Likelihood ratio tests
+
+Each row compares the full model against the model without that predictor,
+so multi-level factors get a single test.
+
+```{r lr-tests}
+lr <- lr_tests(model)
+write_table(lr, "lr_tests")
+lr |>
+  dplyr::arrange(dplyr::desc(lr_chisq)) |>
+  dplyr::transmute(Predictor = characteristic, df,
+                   `LR chi-square` = round(lr_chisq, 1), p = format_p(p_value)) |>
+  knitr::kable()
+```
+
+### Crude readmission rate by prior inpatient stays
+
+Prior inpatient use is the strongest predictor by LR chi-square. The crude
+gradient shows what that looks like at the bedside.
+
+```{r prior-inpatient-gradient}
+prior_gradient <- analytic |>
+  dplyr::mutate(prior_stays = ifelse(prior_inpatient >= 5, "5+",
+                                     as.character(prior_inpatient))) |>
+  dplyr::group_by(prior_stays) |>
+  dplyr::summarise(patients = dplyr::n(), readmitted = sum(readmit_30day),
+                   .groups = "drop") |>
+  dplyr::mutate(share_of_cohort = patients / sum(patients),
+                share_of_readmissions = readmitted / sum(readmitted),
+                readmission_rate = readmitted / patients)
+write_table(prior_gradient, "readmission_by_prior_inpatient")
+knitr::kable(prior_gradient, digits = 3, format.args = list(big.mark = ","))
+```
+
+### Model checks
+
+Generalized VIF (adjusted values above about 3.2 would be a concern) and the
+Box-Tidwell style linearity check from the course version.
+
+```{r model-checks}
+vif <- vif_table(model)
+write_table(vif, "vif")
+knitr::kable(vif |> dplyr::select(-variable), digits = 2)
+
+box_tidwell <- box_tidwell_check(analytic)
+write_table(box_tidwell, "box_tidwell")
+knitr::kable(box_tidwell |> dplyr::mutate(p = format_p(p_value)) |>
+               dplyr::select(characteristic, estimate, p), digits = 3)
+```
+
+## 5. Discrimination and calibration
+
+Two complementary checks. First, a stratified 70/30 split: the model is fit
+on 70% of patients and scored on the other 30%, which gives an honest ROC
+curve and calibration plot. Second, Harrell's bootstrap optimism correction
+(`r params$boot_reps` resamples) on the full cohort, which uses all the data
+for both fitting and validation.
+
+```{r holdout}
+holdout <- holdout_validation(analytic, train_prop = 0.7, seed = params$seed)
+write_table(holdout$summary, "holdout_performance")
+write_table(holdout$bins, "calibration_bins")
+knitr::kable(holdout$summary, digits = 3)
+```
+
+```{r roc-calibration-figures, echo = FALSE, out.width = "49%", fig.show = "hold"}
+auc_vals <- setNames(holdout$summary$value, holdout$summary$metric)
+save_figure(plot_roc(holdout$roc, sprintf("AUC %.3f (95%% CI %.3f to %.3f), n = %s",
+                                         auc_vals[["AUC"]], auc_vals[["AUC 95% CI lower"]],
+                                         auc_vals[["AUC 95% CI upper"]], fmt_n(holdout$n_test))),
+            file.path(fig_dir, "roc_curve.png"), width = 5.5, height = 5.5)
+save_figure(plot_calibration(holdout$bins, holdout$summary, holdout$n_test),
+            file.path(fig_dir, "calibration_plot.png"), width = 5.5, height = 5.5)
+show_figure(c("roc_curve.png", "calibration_plot.png"))
+```
+
+```{r bootstrap}
+boot <- bootstrap_optimism(analytic, B = params$boot_reps, seed = params$seed)
+write_table(boot, "bootstrap_optimism")
+knitr::kable(boot, digits = 4)
+```
+
+## 6. Sensitivity analysis: original cohort definition
+
+The course version did not remove index encounters that ended in death or
+hospice discharge. Here the same model is refit on that original cohort and
+compared with the corrected one.
+
+```{r sensitivity}
+original <- build_cohort(raw, exclude_death_hospice = FALSE)
+original_analytic <- recode_analytic(original$data)
+original_model <- fit_readmission_model(original_analytic)
+
+cohort_summary <- function(label, data, fit) {
+  tibble::tibble(
+    cohort = label,
+    n = nrow(data),
+    readmitted = sum(data$readmit_30day),
+    rate = mean(data$readmit_30day),
+    apparent_auc = auc_rank(data$readmit_30day, stats::fitted(fit))
+  )
+}
+sensitivity_summary <- dplyr::bind_rows(
+  cohort_summary(COHORT_ORIGINAL, original_analytic, original_model),
+  cohort_summary(COHORT_CORRECTED, analytic, model)
+)
+write_table(sensitivity_summary, "sensitivity_summary")
+knitr::kable(sensitivity_summary, digits = 4, format.args = list(big.mark = ","))
+
+or_compare <- dplyr::bind_rows(
+  dplyr::mutate(odds_ratio_table(original_model), cohort = COHORT_ORIGINAL),
+  dplyr::mutate(or_table, cohort = COHORT_CORRECTED)
+)
+write_table(or_compare, "sensitivity_odds_ratios")
+
+or_compare |>
+  dplyr::select(characteristic, level, cohort, or) |>
+  tidyr::pivot_wider(names_from = cohort, values_from = or) |>
+  dplyr::mutate(`Ratio of ORs` = `Corrected: death/hospice excluded` /
+                  `Original (course) definition`) |>
+  knitr::kable(digits = 3)
+```
+
+Who did the exclusion remove? Share of first adult encounters (sex known)
+that ended in death or hospice discharge, by age band:
+
+```{r excluded-by-age}
+excluded_by_age <- original$data |>
+  dplyr::mutate(age = format_age_band(age),
+                death_or_hospice = is_death_or_hospice(discharge_disposition_id)) |>
+  dplyr::group_by(age) |>
+  dplyr::summarise(patients = dplyr::n(), excluded = sum(death_or_hospice),
+                   share_excluded = mean(death_or_hospice), .groups = "drop")
+write_table(excluded_by_age, "death_hospice_by_age")
+knitr::kable(excluded_by_age, digits = 3, format.args = list(big.mark = ","))
+```
+
+```{r sensitivity-figure, echo = FALSE}
+save_figure(plot_sensitivity(or_compare),
+            file.path(fig_dir, "sensitivity_odds_ratios.png"), width = 8, height = 8)
+show_figure("sensitivity_odds_ratios.png")
+```
+
+## Session info
+
+```{r session-info}
+sessionInfo()
+```

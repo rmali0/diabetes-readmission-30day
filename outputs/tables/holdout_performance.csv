@@ -1,0 +1,11 @@
+metric,value
+AUC,0.5988986622957754
+AUC 95% CI lower,0.5856017637462215
+AUC 95% CI upper,0.6121955608453292
+Calibration intercept,-0.004793948995319449
+Calibration slope,0.8277736315477003
+Calibration slope 95% CI lower,0.7190375402376377
+Calibration slope 95% CI upper,0.936509722857763
+Brier score,0.08134754595054973
+Observed rate,0.0901962670771599
+Mean predicted risk,0.09058278503609879

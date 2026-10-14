@@ -1,0 +1,3 @@
+cohort,n,readmitted,rate,apparent_auc
+Original (course) definition,70837,6265,0.08844248062453237,0.6061461462322552
+Corrected: death/hospice excluded,69294,6249,0.09018096804918174,0.6087001157872626
