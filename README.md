@@ -108,7 +108,7 @@ diabetes-readmission-30day/
 
 ## Course context and what changed
 
-This project began as our final project for HDS-5310 Analytics and Statistical Programming at Saint Louis University (Spring 2026), written by Richard Mali and Vivian Asare. The research question, variable definitions and model specification are from that joint work. This repository is a cleaned-up portfolio version that I made after the course. Changes from the submitted version:
+This project began as a partner final project for HDS-5310 Analytics and Statistical Programming at Saint Louis University (Spring 2026), written by Richard Mali and Vivian Asare. The research question, variable definitions and model specification are from that joint work. This repository is a cleaned-up portfolio version that I made after the course. Changes from the submitted version:
 
 - **Death and hospice exclusion.** Index stays ending in death or hospice discharge (disposition codes 11, 13, 14, 19, 20, 21) are now excluded, removing 1,543 patients (N 70,840 to 69,294 after the sex exclusion; readmission rate 8.8% to 9.0%).
 - **Cohort flow figure** in CONSORT style, built from the counts the code produces.
@@ -122,6 +122,6 @@ This project began as our final project for HDS-5310 Analytics and Statistical P
 
 ## Author
 
-Richard Mali, MS Health Data Science student, Saint Louis University. [LinkedIn](https://linkedin.com/in/richardmali). The original study was co-authored with Vivian Asare.
+Richard Mali, MS Health Data Science student, Saint Louis University. [LinkedIn](https://linkedin.com/in/richardmali)
 
 I used Claude as a coding assistant for refactoring and testing; the analysis decisions and interpretation are ours (the original study) and mine (the portfolio changes).
